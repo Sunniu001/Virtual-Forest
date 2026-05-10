@@ -12,6 +12,111 @@ const HEX_STATES = {
   FLOURISHING: 'flourishing'
 };
 
+// Geographically positioned region seeds with target hex counts for the 2,580 Hexagon World Map
+// Geographically positioned region seeds with target hex counts for the 1,000 Hexagon World Map
+const WORLD_CLUSTERS = [
+  // 1. Africa (Purple: #a855f7 - Total exactly 330 hexagons)
+  { dx: -40, dy: 20, count: 25, name: 'Cameroon', color: '#a855f7', continent: 'Africa' },
+  { dx: 30, dy: -30, count: 25, name: 'Sudan', color: '#a855f7', continent: 'Africa' },
+  { dx: 40, dy: 10, count: 25, name: 'Uganda', color: '#a855f7', continent: 'Africa' },
+  { dx: -70, dy: -10, count: 25, name: 'Nigeria', color: '#a855f7', continent: 'Africa' },
+  { dx: 80, dy: -10, count: 25, name: 'Ethiopia', color: '#a855f7', continent: 'Africa' },
+  { dx: -40, dy: 110, count: 25, name: 'Namibia', color: '#a855f7', continent: 'Africa' },
+  { dx: 0, dy: 140, count: 30, name: 'South Africa(North Side)', color: '#a855f7', continent: 'Africa' },
+  { dx: 20, dy: 180, count: 30, name: 'South Africa(South Side)', color: '#a855f7', continent: 'Africa' },
+  { dx: 50, dy: 30, count: 25, name: 'Kenya (P)', color: '#a855f7', continent: 'Africa' },
+  { dx: 10, dy: 80, count: 25, name: 'Zambia', color: '#a855f7', continent: 'Africa' },
+  { dx: -20, dy: 40, count: 25, name: 'Congo', color: '#a855f7', continent: 'Africa' },
+  { dx: 60, dy: -10, count: 25, name: 'Kenya (B)', color: '#a855f7', continent: 'Africa' },
+  { dx: -110, dy: -10, count: 20, name: 'Ghana', color: '#a855f7', continent: 'Africa' },
+
+  // 2. North America (Yellow/Gold: #eab308 - Total exactly 200 hexagons)
+  { dx: -380, dy: -160, count: 20, name: 'Canada', color: '#eab308', continent: 'North America' },
+  { dx: -380, dy: -100, count: 20, name: 'North and South Dakota', color: '#eab308', continent: 'North America' },
+  { dx: -310, dy: -90, count: 20, name: 'Michigan', color: '#eab308', continent: 'North America' },
+  { dx: -260, dy: -80, count: 20, name: 'North East US', color: '#eab308', continent: 'North America' },
+  { dx: -440, dy: -70, count: 20, name: 'California', color: '#eab308', continent: 'North America' },
+  { dx: -400, dy: -40, count: 20, name: 'New Mexico', color: '#eab308', continent: 'North America' },
+  { dx: -340, dy: -40, count: 20, name: 'Texas Gulf', color: '#eab308', continent: 'North America' },
+  { dx: -300, dy: -30, count: 20, name: 'Alabama', color: '#eab308', continent: 'North America' },
+  { dx: -260, dy: -20, count: 20, name: 'Southern US', color: '#eab308', continent: 'North America' },
+  { dx: -540, dy: -30, count: 20, name: 'Hawaii', color: '#eab308', continent: 'North America' },
+
+  // 3. South America (Green: #22c55e - Total exactly 130 hexagons)
+  { dx: -340, dy: 60, count: 15, name: 'Galapagos', color: '#22c55e', continent: 'South America' },
+  { dx: -280, dy: 100, count: 20, name: 'Peru', color: '#22c55e', continent: 'South America' },
+  { dx: -160, dy: 100, count: 20, name: 'Brazil', color: '#22c55e', continent: 'South America' },
+  { dx: -200, dy: 140, count: 20, name: 'Paraguay', color: '#22c55e', continent: 'South America' },
+  { dx: -260, dy: 180, count: 15, name: 'Chile', color: '#22c55e', continent: 'South America' },
+  { dx: -210, dy: 190, count: 20, name: 'East Argentina', color: '#22c55e', continent: 'South America' },
+  { dx: -250, dy: 230, count: 20, name: 'West Argentina', color: '#22c55e', continent: 'South America' },
+
+  // 4. Oceania (Cyan/Teal: #06b6d4 - Total exactly 60 hexagons)
+  { dx: 332, dy: 191, count: 30, name: 'South East Australia', color: '#06b6d4', continent: 'Oceania' },
+  { dx: 340, dy: 219, count: 6, name: 'Tasmania', color: '#06b6d4', continent: 'Oceania' },
+  { dx: 430, dy: 210, count: 24, name: 'New Zealand', color: '#06b6d4', continent: 'Oceania' },
+
+  // 5. South East Asia & Asia (Blue: #3b82f6 - Total exactly 280 hexagons)
+  { dx: 280, dy: -180, count: 30, name: 'Russia', color: '#3b82f6', continent: 'Asia' },
+  { dx: 340, dy: -100, count: 30, name: 'China', color: '#3b82f6', continent: 'Asia' },
+  { dx: 180, dy: -60, count: 28, name: 'Central India', color: '#3b82f6', continent: 'Asia' },
+  { dx: 240, dy: -50, count: 28, name: 'India(North East India)', color: '#3b82f6', continent: 'Asia' },
+  { dx: 200, dy: -10, count: 28, name: 'SriLanka(Including South India)', color: '#3b82f6', continent: 'Asia' },
+  { dx: 280, dy: -40, count: 28, name: 'Myanmar', color: '#3b82f6', continent: 'Asia' },
+  { dx: 320, dy: 0, count: 28, name: 'Malaysia', color: '#3b82f6', continent: 'Asia' },
+  { dx: 320, dy: 40, count: 26, name: 'Sumatra', color: '#3b82f6', continent: 'Asia' },
+  { dx: 380, dy: 50, count: 28, name: 'Borneo', color: '#3b82f6', continent: 'Asia' },
+  { dx: 420, dy: 80, count: 26, name: 'Indonesia', color: '#3b82f6', continent: 'Asia' }
+];
+
+const NEW_ZEALAND_HEXES = [
+  // --- NORTH ISLAND (Locked and Perfect - Do not touch) ---
+  { q: 58, r: 44 }, { q: 58, r: 45 }, { q: 58, r: 46 },
+  { q: 57, r: 47 }, { q: 58, r: 47 },
+  { q: 56, r: 48 }, { q: 57, r: 48 }, { q: 58, r: 48 },
+  { q: 57, r: 49 }, { q: 58, r: 49 },
+  { q: 57, r: 50 },
+
+  // --- SOUTH ISLAND (Shifted +2 Q and +1 R to align with landmass) ---
+  // Top Row (Nelson/Marlborough)
+  { q: 53, r: 52 }, { q: 54, r: 52 },
+
+  // Upper Bulge 
+  { q: 52, r: 53 }, { q: 53, r: 53 }, { q: 54, r: 53 },
+
+  // The Neck
+  { q: 52, r: 54 }, { q: 53, r: 54 },
+
+  // Lower Bulge (Canterbury/Otago)
+  { q: 51, r: 55 }, { q: 52, r: 55 }, { q: 53, r: 55 },
+
+  // Lower Body
+  { q: 51, r: 56 }, { q: 52, r: 56 },
+
+  // Southland Tip
+  { q: 51, r: 57 }
+];
+
+
+
+// Procedural Biome Assignment
+const getBiomeFromPosition = (dx, dy, elev) => {
+  if (dy < -140 || elev > 3000) return 'Alpine Tundra';
+  if (dy >= -60 && dy <= 10 && ((dx > -140 && dx < 140) || (dx > 120 && dx < 240))) return 'Arid Desert';
+  if (dy >= -30 && dy <= 60 && ((dx > -100 && dx < 100) || dx > 200)) return 'Tropical Rainforest';
+  if (elev > 1800) return 'Coniferous Forest';
+  return 'Temperate Grassland';
+};
+
+// Pointy-Top axial neighbors helpers
+const getNeighbors = (q, r) => [
+  { q: q + 1, r: r },
+  { q: q + 1, r: r - 1 },
+  { q: q, r: r - 1 },
+  { q: q - 1, r: r },
+  { q: q - 1, r: r + 1 },
+  { q: q, r: r + 1 }
+];
 
 export default function HexGridCanvas({ house, onHexClick }) {
   const setActiveHexCount = useStore((state) => state.setActiveHexCount);
@@ -246,12 +351,23 @@ export default function HexGridCanvas({ house, onHexClick }) {
 
       allHexes.forEach(hex => {
         const assignment = assignedHexes.get(hex.id);
-        if (assignment) {
-          newHexes.push({
-            q: hex.q, r: hex.r, dx: hex.dx, dy: hex.dy, id: hex.id,
-            state: assignment.state, region: assignment.region, color: assignment.color, continent: assignment.continent
-          });
-        }
+        
+        // PROCEDURAL RANDOM SEED GENERATOR FOR GAMEPLAY POPULATION
+        const rand = Math.random();
+        let state = HEX_STATES.AVAILABLE;
+        
+        // 10% Flourishing, 15% Growing, 5% Reserved/Unavailable, 70% Available (Open Soil)
+        if (rand < 0.10) state = HEX_STATES.FLOURISHING;
+        else if (rand < 0.25) state = HEX_STATES.GROWING;
+        else if (rand < 0.30) state = HEX_STATES.RESERVED;
+
+        newHexes.push({
+          q: hex.q, r: hex.r, dx: hex.dx, dy: hex.dy, id: hex.id,
+          state: assignment ? assignment.state : state, 
+          region: assignment ? assignment.region : 'Untamed Wilderness', 
+          color: assignment ? assignment.color : (isIboga ? '#a855f7' : '#3b82f6'), 
+          continent: 'Africa'
+        });
       });
     }
 
@@ -334,12 +450,56 @@ export default function HexGridCanvas({ house, onHexClick }) {
         ctx.stroke();
         ctx.shadowBlur = 0; // Reset glow
       } else {
-        // Default glowing tactical border
-        ctx.fillStyle = hex.state === HEX_STATES.FLOURISHING ? `${themeColor}22` : `${themeColor}09`;
-        ctx.strokeStyle = `${themeColor}44`;
-        ctx.lineWidth = 0.8;
-        ctx.fill();
-        ctx.stroke();
+        // High-Fidelity Gameplay State Projectors
+        if (hex.state === HEX_STATES.FLOURISHING) {
+          // Fully realized Node
+          ctx.fillStyle = `${themeColor}99`; // Dynamic Solid Opacity
+          ctx.fill();
+          
+          ctx.strokeStyle = `${themeColor}cc`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+          
+          // Add central living core
+          ctx.beginPath();
+          ctx.arc(x, y, Math.max(1, hexSize * 0.25), 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#ffffff';
+          ctx.fill();
+          ctx.shadowBlur = 0; // Reset immediately
+          
+        } else if (hex.state === HEX_STATES.GROWING) {
+          // Seed Germinating Node
+          ctx.fillStyle = `${themeColor}33`; 
+          ctx.fill();
+          
+          ctx.strokeStyle = `${themeColor}66`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          
+          // Small glowing seed artifact
+          ctx.beginPath();
+          ctx.arc(x, y, Math.max(0.5, hexSize * 0.15), 0, Math.PI * 2);
+          ctx.fillStyle = `${themeColor}`;
+          ctx.fill();
+          
+        } else if (hex.state === HEX_STATES.RESERVED) {
+          // Blocked/Locked infrastructure
+          ctx.fillStyle = `#1e293b`; // Slate Neutral
+          ctx.fill();
+          ctx.strokeStyle = `#475569`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+          
+        } else {
+          // Standard Available Land Plot (Tactical Blueprint Outline)
+          ctx.fillStyle = `${themeColor}08`; // Nearly fully clear
+          ctx.fill();
+          ctx.strokeStyle = `${themeColor}30`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
       }
     });
   }, [hexes, house.color, zoom, pan, isBgLoaded]);

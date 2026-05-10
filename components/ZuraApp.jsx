@@ -11,6 +11,9 @@ import MapOverlay from './MapOverlay';
 import HexGridCanvas from './HexGridCanvas';
 import PlantingModal from './PlantingModal';
 import TitleScreen from './TitleScreen';
+import TacticalDashboard from './TacticalDashboard';
+import TimelineView from './TimelineView';
+import AlignmentCeremony from './AlignmentCeremony';
 
 // Dynamically import the Three.js WebGL container with SSR disabled
 // to completely prevent any reference errors or canvas crashes during SSR compilation
@@ -37,13 +40,62 @@ const DeckGLMap = dynamic(() => import('./DeckGLMap'), {
 
 export default function ZuraApp() {
   const view = useStore((state) => state.view);
+  const setView = useStore((state) => state.setView);
   const selectedHouse = useStore((state) => state.selectedHouse);
+  const setSelectedHouse = useStore((state) => state.setSelectedHouse);
   const selectedHex = useStore((state) => state.selectedHex);
   const setSelectedHex = useStore((state) => state.setSelectedHex);
+  
+  const activeCommandTab = useStore((state) => state.activeCommandTab);
+  const setActiveCommandTab = useStore((state) => state.setActiveCommandTab);
+  const userHouseId = useStore((state) => state.userHouseId);
+  
+  const ceremonyActive = useStore((state) => state.ceremonyActive);
+  const setCeremonyActive = useStore((state) => state.setCeremonyActive);
+
+  // Ceremonial Protocol Initiation Loop
+  React.useEffect(() => {
+    if (view === 'globe' && !userHouseId) {
+      const timer = setTimeout(() => {
+        setCeremonyActive(true);
+      }, 10000); // Extended to exact 10-second environmental immersion delay
+      return () => clearTimeout(timer);
+    }
+  }, [view, userHouseId]);
+
+  // Global Command Deck Routing Logic
+  React.useEffect(() => {
+    if (activeCommandTab === 'world') {
+      // Automatically force open the World view
+      setSelectedHouse({
+        id: 'world',
+        name: 'World Map',
+        color: '#10b981',
+        clans: ['Global Sector'],
+        stats: { nodes: '200', flourishing: '100%' }
+      });
+      setView('transition');
+      
+      // Reset tab state so user can use it again next time
+      setTimeout(() => {
+        setView('map');
+        setActiveCommandTab(null); 
+      }, 1200);
+    }
+  }, [activeCommandTab, setView, setSelectedHouse, setActiveCommandTab]);
 
   return (
     <div className="w-full h-screen bg-[#020617] text-white font-sans overflow-hidden relative selection:bg-white/10">
       
+      {/* Alignment Covenant Ceremony protocol Overlay */}
+      <AlignmentCeremony show={ceremonyActive} onComplete={() => setCeremonyActive(false)} />
+
+      {/* Full Screen Immersive Social Timeline */}
+      <TimelineView />
+
+      {/* Floating Command Tactical Dashboard (Missions, Store, etc) */}
+      <TacticalDashboard />
+
       {/* Immersive Cinematic Title Screen */}
       <AnimatePresence mode="wait">
         {view === 'title' && (

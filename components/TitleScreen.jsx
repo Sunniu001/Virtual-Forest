@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, useAnimationFrame } from 'framer-motion';
 import { useStore } from '@/lib/store';
 import { User, LogOut, Volume2, VolumeX } from 'lucide-react';
+import { sfx } from '@/lib/sfx';
 
 // THEME TRACK EXCLUSIVE
 const RAIN_THEME = "https://res.cloudinary.com/dwgpeeu0r/video/upload/v1778358273/nourishedbymusic-ambient-forest-rain-375365_kmsbpb.mp3";
@@ -85,6 +86,7 @@ export default function TitleScreen() {
 
   const toggleMute = (e) => {
     e.stopPropagation();
+    sfx.playClick();
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
@@ -98,15 +100,16 @@ export default function TitleScreen() {
   const [showReadme, setShowReadme] = useState(false);
 
   const handleStartGame = () => {
+    sfx.playTransitionPower(); // Engage atmospheric heavy frequency logic
     if (!isLoggedIn) setIsLoggedIn(true);
-    setView('globe');
+    setTimeout(() => setView('globe'), 100); // Micro offset to ensure sfx executes context
   };
 
   const menuItems = [
     { label: isLoggedIn ? "CONTINUE" : "NEW GAME - LOG IN", onClick: handleStartGame, primary: true },
-    { label: "READ ME", onClick: () => setShowReadme(true) },
-    { label: "CREDITS", onClick: () => alert("Ecosystem Online") },
-    { label: "EXIT", onClick: () => window.close() },
+    { label: "READ ME", onClick: () => { sfx.playClick(); setShowReadme(true); } },
+    { label: "CREDITS", onClick: () => { sfx.playClick(); alert("Ecosystem Online"); } },
+    { label: "EXIT", onClick: () => { sfx.playClick(); window.close(); } },
   ];
 
   return (
