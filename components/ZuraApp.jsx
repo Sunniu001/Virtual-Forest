@@ -7,13 +7,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Globe2, Loader2 } from 'lucide-react';
 
 import HUD from './HUD';
+import TacticalMap from './TacticalMap';
 import MapOverlay from './MapOverlay';
-import HexGridCanvas from './HexGridCanvas';
 import PlantingModal from './PlantingModal';
 import TitleScreen from './TitleScreen';
 import TacticalDashboard from './TacticalDashboard';
 import TimelineView from './TimelineView';
 import AlignmentCeremony from './AlignmentCeremony';
+
+// House-specific MapLibre maps (SSR disabled — WebGL)
+const HouseVectorMap = dynamic(() => import('./HouseVectorMap'), { ssr: false });
 
 // Dynamically import the Three.js WebGL container with SSR disabled
 // to completely prevent any reference errors or canvas crashes during SSR compilation
@@ -27,16 +30,8 @@ const ZuraGlobe = dynamic(() => import('./ZuraGlobe'), {
   )
 });
 
-// Dynamically import our custom Deck.gl land-masked map with SSR disabled
-const DeckGLMap = dynamic(() => import('./DeckGLMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#020617] text-slate-400 font-mono">
-      <Loader2 className="animate-spin text-emerald-400 mb-4" size={48} />
-      <span className="text-xs font-semibold tracking-[0.25em] animate-pulse uppercase text-emerald-400/80">BOOTING TACTICAL GRID ENGINE...</span>
-    </div>
-  )
-});
+// Legacy DeckGL removed in favor of vector-based TacticalMap engine
+
 
 export default function ZuraApp() {
   const view = useStore((state) => state.view);
@@ -90,11 +85,11 @@ export default function ZuraApp() {
       {/* Alignment Covenant Ceremony protocol Overlay */}
       <AlignmentCeremony show={ceremonyActive} onComplete={() => setCeremonyActive(false)} />
 
-      {/* Full Screen Immersive Social Timeline */}
-      <TimelineView />
+      {/* Full Screen Immersive Social Timeline — hidden in map/game mode */}
+      {view !== 'map' && <TimelineView />}
 
-      {/* Floating Command Tactical Dashboard (Missions, Store, etc) */}
-      <TacticalDashboard />
+      {/* Floating Command Tactical Dashboard — hidden in map/game mode */}
+      {view !== 'map' && <TacticalDashboard />}
 
       {/* Immersive Cinematic Title Screen */}
       <AnimatePresence mode="wait">
@@ -103,6 +98,20 @@ export default function ZuraApp() {
         )}
       </AnimatePresence>
       
+      {/* Globe HUD — only shown on globe view, never in map/game mode */}
+      <AnimatePresence>
+        {view === 'globe' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 pointer-events-none z-40"
+          >
+            <HUD />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* 3D Cinematic Planet Canvas (WebGL Container) */}
       <AnimatePresence mode="wait">
         {(view === 'globe' || view === 'transition') && (
@@ -115,17 +124,6 @@ export default function ZuraApp() {
             className="absolute inset-0 w-full h-full z-0"
           >
             <ZuraGlobe />
-            
-            {view === 'globe' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 pointer-events-none"
-              >
-                <HUD />
-              </motion.div>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
@@ -135,20 +133,17 @@ export default function ZuraApp() {
         {view === 'map' && selectedHouse && (
           <motion.div 
             key="map-view-container"
-            initial={{ opacity: 0, scale: 0.92 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1 }}
-            className="absolute inset-0 flex flex-col bg-[#0f172a] z-0"
+            transition={{ duration: 0.6 }}
+            className="absolute inset-0 flex flex-col bg-[#020617] z-0"
           >
             <div className="flex-1 w-full h-full z-0 pointer-events-auto">
-              {selectedHouse.id === 'world' ? (
-                <DeckGLMap />
-              ) : (
-                <HexGridCanvas house={selectedHouse} onHexClick={setSelectedHex} />
-              )}
+              <HouseVectorMap />
             </div>
 
+            {/* Minimal game-mode overlay — district panel only */}
             {selectedHouse.id !== 'world' && <MapOverlay />}
           </motion.div>
         )}
@@ -167,4 +162,5 @@ export default function ZuraApp() {
       
     </div>
   );
+
 }

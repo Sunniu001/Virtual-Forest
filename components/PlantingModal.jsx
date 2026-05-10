@@ -18,13 +18,57 @@ export default function PlantingModal({ hex, house, onClose }) {
     setPlanting(true);
     setTimeout(() => {
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('updateHexState', {
-          detail: { id: hex.id, newState: HEX_STATES.RESERVED }
+        window.dispatchEvent(new CustomEvent('vf:planting-success', {
+          detail: { 
+            id: hex.id, 
+            clan: hex.clan, 
+            lat: parseFloat(hex.q), 
+            lng: parseFloat(hex.r) 
+          }
         }));
       }
-      onClose();
+      setPlanting('done');
     }, 1200);
   };
+
+  if (planting === 'done') {
+    return (
+      <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-slate-900 border-emerald-500/50 border-2 p-8 rounded-3xl max-w-sm w-full shadow-[0_0_50px_rgba(16,185,129,0.2)] text-center relative overflow-hidden"
+        >
+          <div className="absolute top-0 left-0 w-full h-1 bg-emerald-500 animate-pulse" />
+          
+          <div className="w-20 h-20 rounded-full bg-emerald-500/20 flex items-center justify-center mx-auto mb-6 border border-emerald-500/30">
+            <Sprout size={40} className="text-emerald-400" />
+          </div>
+
+          <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-4">Seed Committed</h2>
+          
+          <div className="space-y-4 text-sm text-slate-300 leading-relaxed mb-8">
+            <p>
+              Targeting array locked. Your seed has been successfully deployed to <span className="text-emerald-400 font-bold">{hex.clan}</span>.
+            </p>
+            <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
+              <p className="text-emerald-400 font-bold uppercase text-[10px] tracking-widest mb-2">Protocol: Next Steps</p>
+              <p className="text-xs">
+                Gestation takes **7 days**. You must return **every 24 hours** to synchronize biosphere levels (water). Failure to nurture will result in seedling expiration.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black uppercase tracking-widest rounded-xl transition-all shadow-lg"
+          >
+            Acknowledge & Sync
+          </button>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">

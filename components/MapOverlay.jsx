@@ -1,15 +1,32 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
-import { Globe2 } from 'lucide-react';
+import { Globe2, Users, Zap, Hexagon } from 'lucide-react';
+import AudioDeck from './AudioDeck';
 
 export default function MapOverlay() {
   const selectedHouse = useStore((state) => state.selectedHouse);
-  const resetToGlobe = useStore((state) => state.resetToGlobe);
+  const resetToGlobe  = useStore((state) => state.resetToGlobe);
   const activeHexCount = useStore((state) => state.activeHexCount);
-  const totalHexes = useStore((state) => state.totalHexCount);
-  const doneHexes = useStore((state) => state.doneHexCount);
+  const totalHexes    = useStore((state) => state.totalHexCount);
+  const doneHexes     = useStore((state) => state.doneHexCount);
+  
+  // Mock data for new requested stats
+  const totalHouseCells = 2000;
+  const completedCells = doneHexes;
+  const gestationCells = 4; // Mock
+  const availableCells = totalHouseCells - completedCells - gestationCells;
+  const totalUsers = 1240;
+  const houseKarma = 45800;
+
+  const [fps, setFps] = useState(null);
+
+  useEffect(() => {
+    const handler = (e) => setFps(e.detail);
+    window.addEventListener('vf:fps', handler);
+    return () => window.removeEventListener('vf:fps', handler);
+  }, []);
 
   if (!selectedHouse) return null;
 
@@ -21,7 +38,7 @@ export default function MapOverlay() {
     <div className="absolute inset-0 pointer-events-none p-6 sm:p-8 flex flex-col justify-between z-10 select-none">
       
       {/* Top Header */}
-      <header className="flex justify-between items-start w-full">
+      <header className="absolute top-6 left-0 right-0 flex justify-center pointer-events-none w-full z-50">
         <button 
           onClick={resetToGlobe}
           className="pointer-events-auto flex items-center space-x-2 text-slate-300 hover:text-white transition-all duration-300 bg-slate-950/60 backdrop-blur border border-slate-800 hover:border-slate-700 px-5 py-3 rounded-xl shadow-[0_0_20px_rgba(15,23,42,0.6)]"
@@ -29,17 +46,51 @@ export default function MapOverlay() {
           <Globe2 size={16} />
           <span className="text-sm font-medium tracking-wide">Return to Planet</span>
         </button>
+      </header>
 
-        <div className="flex items-center space-x-4 pointer-events-auto bg-slate-950/60 backdrop-blur border border-slate-800 px-5 py-3 rounded-xl shadow-[0_0_20px_rgba(15,23,42,0.6)]">
-          <div className="text-right">
-            <span className="text-[9px] text-slate-500 font-mono tracking-widest uppercase block mb-1">TERRITORIAL SECTOR</span>
-            <span className="text-sm font-semibold text-white flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_currentColor] animate-pulse" style={{backgroundColor: selectedHouse.color, color: selectedHouse.color}} />
-              {selectedHouse.name} House
-            </span>
+      {/* Top Left — Merged House Identity & Status */}
+      <div className="absolute top-6 left-6 flex flex-col gap-3 pointer-events-auto z-50 w-72">
+        <div className="bg-slate-950/80 backdrop-blur-md border border-slate-800 p-4 rounded-2xl shadow-xl border-l-4" style={{ borderLeftColor: selectedHouse.color }}>
+          <div className="flex justify-between items-center mb-3">
+             <div className="flex items-center gap-2">
+                <div className="w-2.5 h-2.5 rounded-full animate-pulse shadow-[0_0_8px_currentColor]" style={{backgroundColor: selectedHouse.color, color: selectedHouse.color}} />
+                <span className="text-[10px] text-slate-400 font-mono tracking-widest uppercase">House {selectedHouse.name}</span>
+             </div>
+             <span className="text-[10px] font-mono text-emerald-400 font-bold">{percentDone}%</span>
+          </div>
+
+          <div className="w-full h-1.5 bg-slate-900 rounded-full overflow-hidden mb-3">
+            <div 
+              className="h-full transition-all duration-700" 
+              style={{ 
+                width: `${percentDone}%`,
+                background: `linear-gradient(to right, ${selectedHouse.color}, #6366f1)`
+              }} 
+            />
+          </div>
+
+          <div className="flex justify-between text-[10px] font-mono">
+            <div>
+              <span className="text-slate-500 uppercase mr-2">Plots:</span>
+              <span className="text-white font-bold">{totalHexes}</span>
+            </div>
+            <div>
+              <span className="text-slate-500 uppercase mr-2">Seeded:</span>
+              <span style={{ color: selectedHouse.color }} className="font-bold">{doneHexes}</span>
+            </div>
           </div>
         </div>
-      </header>
+      </div>
+
+      {/* Top Right — FPS Counter */}
+      <div className="absolute top-6 right-6 flex flex-col items-end gap-1.5 pointer-events-auto z-50">
+          {fps !== null && (
+            <div className="flex items-center gap-2 bg-slate-950/70 backdrop-blur border border-slate-800 px-3 py-1.5 rounded-lg">
+              <div className="w-1 h-1 rounded-full animate-ping" style={{ backgroundColor: fps >= 50 ? '#22c55e' : '#eab308' }} />
+              <span className="text-[10px] font-mono text-slate-500 font-bold">{fps} FPS</span>
+            </div>
+          )}
+      </div>
 
       {/* World Map minimalist stats card & Cyber HUD */}
       {selectedHouse.id === 'world' && (
@@ -141,89 +192,14 @@ export default function MapOverlay() {
       {/* Right Sidebar panels */}
       {selectedHouse.id !== 'world' && (
         <div className="absolute right-6 sm:right-8 top-1/2 -translate-y-1/2 flex flex-col items-end space-y-4 pointer-events-none z-10 w-72">
-          
-          {/* Dynamic House Overall Status Dashboard Card */}
-          <div className="bg-slate-950/75 backdrop-blur-md border border-slate-800 p-5 rounded-2xl shadow-xl pointer-events-auto w-full">
-            <h4 className="text-[10px] font-mono tracking-widest uppercase mb-3 flex items-center justify-between" style={{ color: selectedHouse.color }}>
-              <span>HOUSE OVERALL STATUS</span>
-              <span 
-                className="px-2 py-0.5 rounded-full text-[8px] border" 
-                style={{ 
-                  backgroundColor: `${selectedHouse.color}15`, 
-                  borderColor: `${selectedHouse.color}40`,
-                  color: selectedHouse.color
-                }}
-              >
-                {selectedHouse.name.toUpperCase()}
-              </span>
-            </h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-end">
-                <div>
-                  <span className="text-[10px] text-slate-500 font-mono uppercase block">Total Hexagons</span>
-                  <span className="text-2xl font-bold text-white font-mono">{totalHexes}</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-500 font-mono uppercase block">Completion</span>
-                  <span className="text-sm font-semibold text-emerald-400 font-mono">{percentDone}%</span>
-                </div>
-              </div>
-
-              {/* Glowing tactical progress bar */}
-              <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800/80 p-[1px]">
-                <div 
-                  className="h-full rounded-full transition-all duration-500" 
-                  style={{ 
-                    width: `${percentDone}%`,
-                    background: `linear-gradient(to right, ${selectedHouse.color}, #6366f1)`,
-                    boxShadow: `0 0 8px ${selectedHouse.color}80`
-                  }} 
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-900 text-center">
-                <div className="p-1.5 rounded-lg bg-slate-900/30">
-                  <span className="text-[9px] text-slate-500 font-mono block">SEEDED (DONE)</span>
-                  <span className="text-xs font-bold font-mono" style={{ color: selectedHouse.color }}>{doneHexes}</span>
-                </div>
-                <div className="p-1.5 rounded-lg bg-slate-900/30">
-                  <span className="text-[9px] text-slate-500 font-mono block">REMAINS</span>
-                  <span className="text-xs font-bold text-slate-300 font-mono">{remainingHexes}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Territory states legend */}
-          <div className="bg-slate-950/75 backdrop-blur-md border border-slate-800 p-5 rounded-2xl shadow-xl pointer-events-auto w-full">
-            <h4 className="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-4">TERRITORY STATES</h4>
-            <div className="space-y-3 text-xs">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-md border border-[#1b2332] bg-[#101520]" />
-                <span className="text-slate-400">Locked Wilderness</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-md border flex items-center justify-center" style={{borderColor: selectedHouse.color, backgroundColor: `${selectedHouse.color}22`}} />
-                <span className="text-emerald-400 font-medium">Available (Free to plant)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-md border" style={{borderColor: selectedHouse.color, backgroundColor: `${selectedHouse.color}88`}} />
-                <span className="text-slate-300">Reserved (7d Gestation)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 rounded-md shadow-[0_0_10px_currentColor] animate-pulse" style={{backgroundColor: selectedHouse.color, color: selectedHouse.color}} />
-                <span className="text-white">Flourishing Dome</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Districts / Countries list with live counts & stats */}
-          <div className="bg-slate-950/75 backdrop-blur-md border border-slate-800 rounded-2xl shadow-xl pointer-events-auto p-5 w-full max-h-[50vh] overflow-y-auto hidden sm:block scrollbar-thin scrollbar-thumb-slate-800">
-            <h4 className="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-4 flex items-center justify-between border-b border-slate-800/80 pb-2">
-              <span>{isIboga ? "AFRICAN SECTORS" : "SECTOR DISTRICTS"}</span>
-              <span className="bg-slate-900 text-slate-300 px-2 py-0.5 rounded-full text-[9px] font-mono border border-slate-800">{selectedHouse.clans?.length || 0}</span>
-            </h4>
-            <div className="space-y-2">
+          {/* Districts / Countries list with live counts & stats - Hiding for Iboga since it has a custom left panel */}
+          {!isIboga && (
+            <div className="bg-slate-950/75 backdrop-blur-md border border-slate-800 rounded-2xl shadow-xl pointer-events-auto p-5 w-full max-h-[50vh] overflow-y-auto hidden sm:block scrollbar-thin scrollbar-thumb-slate-800">
+              <h4 className="text-[10px] font-mono text-slate-500 tracking-widest uppercase mb-4 flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <span>SECTOR DISTRICTS</span>
+                <span className="bg-slate-900 text-slate-300 px-2 py-0.5 rounded-full text-[9px] font-mono border border-slate-800">{selectedHouse.clans?.length || 0}</span>
+              </h4>
+              <div className="space-y-2">
               {(() => {
                 const clansToRender = selectedHouse.clans || [];
 
@@ -264,23 +240,71 @@ export default function MapOverlay() {
                 );
               })()}
             </div>
-          </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Bottom info */}
-      <footer className="w-full flex justify-between items-end">
-        <div className="pointer-events-auto bg-slate-950/60 backdrop-blur-md border border-slate-800 p-4 rounded-xl max-w-[280px] shadow-[0_0_20px_rgba(15,23,42,0.6)]">
-          <p className="text-[9px] font-mono text-slate-500 uppercase tracking-widest mb-1">
-            {selectedHouse.id === 'world' ? "GLOBAL BIOSPHERE" : "DISTRICT MAP NAVIGATION"}
-          </p>
-          <p className="text-[11px] text-slate-400 leading-relaxed">
-            {selectedHouse.id === 'world' ? (
-              <span>Move mouse to explore. Hovering over territories reveals global biosphere data across all active continents.</span>
-            ) : (
-              <span>Move mouse to analyze hex cells. Hovering reveals coordinates. Click an <strong>available</strong> cell to claim territory.</span>
-            )}
-          </p>
+      {/* Bottom Interface Layer */}
+      <footer className="absolute bottom-6 left-6 right-6 flex justify-between items-end pointer-events-none">
+        
+        {/* LEFT: Expanded House Analytics & Navigation */}
+        <div className="pointer-events-auto bg-slate-950/80 backdrop-blur-md border border-slate-800 p-5 rounded-2xl w-80 shadow-2xl">
+          <div className="flex items-center gap-2 mb-4 border-b border-white/5 pb-3">
+             <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: selectedHouse.color, color: selectedHouse.color }} />
+             <span className="text-[10px] font-mono text-slate-400 tracking-[0.2em] uppercase">House {selectedHouse.name} Statistics</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-y-4 gap-x-6 mb-5">
+             <div>
+                <span className="text-[8px] text-slate-500 font-mono uppercase block mb-1">Total Cells</span>
+                <span className="text-sm font-bold text-white font-mono">{totalHouseCells.toLocaleString()}</span>
+             </div>
+             <div>
+                <span className="text-[8px] text-slate-500 font-mono uppercase block mb-1">Completed</span>
+                <span className="text-sm font-bold text-emerald-400 font-mono">{completedCells}</span>
+             </div>
+             <div>
+                <span className="text-[8px] text-slate-500 font-mono uppercase block mb-1">In Gestation</span>
+                <span className="text-sm font-bold text-yellow-400 font-mono">{gestationCells}</span>
+             </div>
+             <div>
+                <span className="text-[8px] text-slate-500 font-mono uppercase block mb-1">Available</span>
+                <span className="text-sm font-bold text-slate-300 font-mono">{availableCells}</span>
+             </div>
+             <div>
+                <span className="text-[8px] text-slate-500 font-mono uppercase block mb-1">House Pop.</span>
+                <span className="text-sm font-bold text-indigo-400 font-mono flex items-center gap-1.5">
+                   <Users size={10} /> {totalUsers.toLocaleString()}
+                </span>
+             </div>
+             <div>
+                <span className="text-[8px] text-slate-500 font-mono uppercase block mb-1">Total Karma</span>
+                <span className="text-sm font-bold text-amber-400 font-mono flex items-center gap-1.5">
+                   <Zap size={10} fill="currentColor" /> {houseKarma.toLocaleString()}
+                </span>
+             </div>
+          </div>
+
+          <div className="pt-3 border-t border-white/5">
+             <div className="flex justify-between items-center mb-1.5">
+                <span className="text-[9px] text-slate-500 font-mono uppercase">House Completion</span>
+                <span className="text-[10px] text-emerald-400 font-bold font-mono">
+                   {Math.round((completedCells / totalHouseCells) * 100)}%
+                </span>
+             </div>
+             <div className="w-full h-1 bg-slate-900 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-emerald-500" 
+                  style={{ width: `${Math.round((completedCells / totalHouseCells) * 100)}%` }} 
+                />
+             </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Audio Deck / Player Seeker */}
+        <div className="pointer-events-auto">
+           <AudioDeck />
         </div>
       </footer>
 

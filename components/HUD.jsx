@@ -78,27 +78,24 @@ export default function HUD() {
     setShowGuide(false); // Dismiss guide upon successful choice
   };
 
-  const handleLaunchMap = () => {
+  const handleLaunchMap = (e) => {
+    if (e) { e.stopPropagation(); e.preventDefault(); }
     sfx.playClick();
     
-    // Extract direct active state snapshot to bypass any stale closures
+    // Read fresh state directly — avoids any stale closure issues
     const storeState = useStore.getState();
-    const targetHouseId = storeState.userHouseId || storeState.focusedHouseId || 'iboga'; 
-    
+    const targetHouseId = storeState.userHouseId || storeState.focusedHouseId || 'iboga';
     const targetHouse = HOUSES.find(h => h.id === targetHouseId);
     
     if (!targetHouse) {
-       console.error("LAUNCH FAILED: Invalid Target House Reference.");
-       return;
+      console.error('[HUD] LAUNCH FAILED: No valid house found. userHouseId:', storeState.userHouseId);
+      return;
     }
-    
+
+    console.log('[HUD] Launching map for house:', targetHouse.id);
     setSelectedHouse(targetHouse);
-    setView('transition');
-    
-    // Launch immediate procedural sequence with slightly faster cycle (1.5s)
-    setTimeout(() => {
-      setView('map');
-    }, 1500);
+    // Go directly to map — skip transition intermediate state
+    setView('map');
   };
 
   const handleBackToMenu = () => {
@@ -311,20 +308,22 @@ export default function HUD() {
 
 
       {/* ============================== CENTER INTERACTIVE LAYER ============================== */}
-      <main className="flex-1 relative w-full flex items-center justify-between px-4">
+      <main className="flex-1 relative w-full flex items-center justify-between px-4 pointer-events-none">
         {/* NO LONGER INHABITED BY LEGACY ALIGNMENT SIDEBARS */}
       </main>
 
 
       {/* ============================== BOTTOM COMMAND DOCK ============================== */}
-      <footer className="relative z-40 w-full flex justify-center pb-4">
+      <footer className="relative z-40 w-full flex justify-center pb-4 pointer-events-auto">
         {inHouseView ? (
           // ASSIGNED STATE: ISOLATED BIG PLAY BUTTON
           <motion.button
             initial={{ y: 40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             onClick={handleLaunchMap}
-            className="group relative pointer-events-auto flex items-center gap-4 px-10 py-4 rounded-2xl overflow-hidden transition-all active:scale-95 shadow-2xl"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            className="group relative pointer-events-auto flex items-center gap-4 px-10 py-4 rounded-2xl overflow-hidden transition-all active:scale-95 shadow-2xl cursor-pointer"
             style={{ backgroundColor: 'rgba(2, 6, 23, 0.8)', border: `1px solid ${themeColor}40` }}
           >
              <div className="absolute inset-0 opacity-10 transition-opacity group-hover:opacity-20" style={{ backgroundColor: themeColor }} />
@@ -415,11 +414,11 @@ export default function HUD() {
         {/* 🚀 THE UPPER HORIZON: PASSPORT & CHRONO SYSTEM */}
         <div className="flex justify-between items-end mb-[160px]">
            {/* LEFT: Personal Operative Passport */}
-           <div className="flex-1 hidden md:flex justify-start items-end pointer-events-auto">
+           <div className="flex-1 hidden md:flex justify-start items-end pointer-events-none">
              {userHouseId && (
                <motion.div 
                  initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
-                 className="min-w-[280px] bg-slate-950/60 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_15px_50px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
+                 className="min-w-[280px] bg-slate-950/60 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_15px_50px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col pointer-events-auto"
                >
                   <div className="px-4 py-3 flex items-center gap-3 border-b border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent">
                      <div className="w-9 h-9 rounded-full flex items-center justify-center shadow-lg" style={{ background: `radial-gradient(circle, ${themeColor}40 0%, ${themeColor}10 100%)`, border: `1px solid ${themeColor}30` }}>
@@ -452,10 +451,10 @@ export default function HUD() {
            </div>
 
            {/* RIGHT: Unified Chrono Matrix (Matched Symmetry) */}
-           <div className="flex-1 hidden lg:flex justify-end items-end pointer-events-auto">
+           <div className="flex-1 hidden lg:flex justify-end items-end pointer-events-none">
              <motion.div 
                initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }}
-               className="min-w-[280px] bg-slate-950/60 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_15px_50px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
+               className="min-w-[280px] bg-slate-950/60 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_15px_50px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col pointer-events-auto"
              >
 
                 
@@ -480,13 +479,13 @@ export default function HUD() {
         {/* 🌍 THE LOWER HORIZON: LEADERBOARD & UTILITIES */}
         <div className="flex justify-between items-end w-full">
            {/* LEFT: Core House Rankings */}
-           <div className="flex-1 hidden md:flex justify-start pointer-events-auto">
+           <div className="flex-1 hidden md:flex justify-start pointer-events-none">
              <HouseLeaderboard />
            </div>
 
            {/* RIGHT: Diagnostic & Audio Metrics */}
-           <div className="flex-1 hidden lg:flex flex-col items-end gap-4 pointer-events-auto">
-             <div className="bg-black/30 px-4 py-2 backdrop-blur min-w-[180px] border-b border-b-white/5" style={{ borderRight: `2px solid ${themeColor}` }}>
+           <div className="flex-1 hidden lg:flex flex-col items-end gap-4 pointer-events-none">
+             <div className="bg-black/30 px-4 py-2 backdrop-blur min-w-[180px] border-b border-b-white/5 pointer-events-auto" style={{ borderRight: `2px solid ${themeColor}` }}>
                 <div className="text-[9px] font-mono uppercase tracking-widest mb-0.5 opacity-80" style={{ color: themeColor }}>Global Karma Points</div>
                 <div className="text-xs font-black text-white tracking-[0.2em] uppercase flex items-center justify-end gap-2">
                   345 <span className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: themeColor, boxShadow: `0 0 6px ${themeColor}` }} />
